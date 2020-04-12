@@ -55,7 +55,6 @@ exports.cffSendgridEmail = functions.https.onCall(async (data, context:any) => {
         }
         
         const msg = {...ACCOUNT_DETAILS, ...data.delegateEmailDetails};
-        console.log(msg)
         await sgMail.send(msg);
         console.log(`Email sent successfully ${JSON.stringify(data)} by logged in user: ${context.auth.token.email} of ${context.auth.token.aud} application`);
         return {
