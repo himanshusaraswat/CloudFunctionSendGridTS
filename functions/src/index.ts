@@ -2,17 +2,18 @@
 import * as functions from 'firebase-functions';
 // Sendgrid Config
 import * as sgMail from '@sendgrid/mail';
-import { onlyAlpha, emailPattern, from } from './constants/constants';
+import { onlyAlpha, emailPattern } from './constants/constants';
 
 const API_KEY = functions.config().sendgrid.key;
-const TEMPLATE_ID = functions.config().sendgrid.template;
+const templateId = functions.config().sendgrid.template;
+const from = functions.config().sendgrid.from;
 
 sgMail.setApiKey(API_KEY);
 
 // Owner Account details
 const ACCOUNT_DETAILS = {
-    ...from,
-    templateId: TEMPLATE_ID,
+    from,
+    templateId,
 }
 
 const validateEmail=(value:any, pattern:string):boolean => {       
@@ -54,14 +55,15 @@ exports.cffSendgridEmail = functions.https.onCall(async (data, context:any) => {
         }
         
         const msg = {...ACCOUNT_DETAILS, ...data.delegateEmailDetails};
+        console.log(msg)
         await sgMail.send(msg);
-        console.log(`Email sent successfully ${JSON.stringify(data)}, by logged in user ${context.auth.token.email}:`);
+        console.log(`Email sent successfully ${JSON.stringify(data)} by logged in user: ${context.auth.token.email} of ${context.auth.token.aud} application`);
         return {
             success: true
         };
     }
     catch (error) {
-        console.log(`${error}, occurred while executing for ${JSON.stringify(data)}, sent by logged in user ${context.auth.token.email}:`);
+        console.log(`${error}, occurred while executing for ${JSON.stringify(data)}, sent by logged in user: ${context.auth.token.email} of ${context.auth.token.aud} application`);
         return {
             success: false
         };
