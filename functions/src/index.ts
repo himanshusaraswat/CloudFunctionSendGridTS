@@ -1,8 +1,5 @@
 // Firebase Config
-import * as admin from 'firebase-admin';
-admin.initializeApp();
 import * as functions from 'firebase-functions';
-
 // Sendgrid Config
 import * as sgMail from '@sendgrid/mail';
 import { onlyAlpha, emailPattern } from './constants/constants';
@@ -34,13 +31,9 @@ const validateEmail=(value:any, pattern:string):boolean => {
 // Sends email via HTTP. Can be called from frontend code. 
 exports.cffSendgridEmail = functions.https.onCall(async (data, context:any) => {
     try {
-    
-        if (!context.auth && !context.auth.uid) {
+        
+        if (!context.auth && !context.auth.token.email) {
             throw new functions.https.HttpsError('failed-precondition', 'Must be logged with an email address');
-        }
-        if (context.auth && context.auth.uid) {
-            // Ensuring the user trying to access is from  our application
-            await admin.auth().getUser(context.auth.uid);
         }
         if(!data.delegateEmailDetails || !data.delegateEmailDetails.dynamic_template_data){
             throw new functions.https.HttpsError('invalid-argument', `Root keys are missing`);
@@ -63,7 +56,7 @@ exports.cffSendgridEmail = functions.https.onCall(async (data, context:any) => {
         
         const msg = {...ACCOUNT_DETAILS, ...data.delegateEmailDetails};
         console.log(msg)
-        //await sgMail.send(msg);
+        await sgMail.send(msg);
         console.log(`Email sent successfully ${JSON.stringify(data)} by logged in user: ${context.auth.token.email} of ${context.auth.token.aud} application`);
         return {
             success: true
